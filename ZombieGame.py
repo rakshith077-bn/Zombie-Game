@@ -1,93 +1,50 @@
-import heapq
+# Constants
+people = {1: 1, 2: 2, 3: 5, 4: 10}  # Mapping people to their respective crossing times
+lantern_capacity = 2
+zombies_time = 17
 
-# Implementation of the zombie escape problem strategy
-def zombie_escape_strategy(graph, heuristic_func):
-    # Implementation of the strategy to ensure all individuals can escape within the time limit
-    pass
+# Initialize variables
+time_elapsed = 0
+crossed = []
 
-# A* Search Algorithm
-def a_star_search(graph, heuristic_func):
-    # Implementation of A* search algorithm
-    import heapq
+# Helper function for crossing the bridge
+def cross_bridge(people_to_cross, time_elapsed):
+    if len(people_to_cross) == 1:
+        return time_elapsed + people_to_cross[0]
 
-# A* Search Algorithm
-def a_star_search(graph, start, goal, heuristic_func):
-    open_set = []
-    heapq.heappush(open_set, (0, start))
-    came_from = {}
-    cost_so_far = {}
-    came_from[start] = None
-    cost_so_far[start] = 0
+    if len(people_to_cross) == 2:
+        return time_elapsed + max(people_to_cross)
 
-    while open_set:
-        current = heapq.heappop(open_set)[1]
+# Backtracking algorithm to find the optimal solution
+def escape_bridge(people_to_cross, time_elapsed, crossed):
+    if time_elapsed >= zombies_time:
+        return False
 
-        if current == goal:
-            break
+    if not people_to_cross:
+        return True
 
-        for neighbor in graph[current]:
-            new_cost = cost_so_far[current] + graph[current][neighbor]
-            if neighbor not in cost_so_far or new_cost < cost_so_far[neighbor]:
-                cost_so_far[neighbor] = new_cost
-                priority = new_cost + heuristic_func(neighbor, goal)
-                heapq.heappush(open_set, (priority, neighbor))
-                came_from[neighbor] = current
+    for group in range(1, lantern_capacity + 1):
+        for crossing_group in combinations(people_to_cross, group):
+            remaining_people = [p for p in people_to_cross if p not in crossing_group]
+            time_taken = cross_bridge(crossing_group, time_elapsed)
+            if time_taken > zombies_time:
+                continue
 
-    return came_from, cost_so_far
+            crossed.append(crossing_group)
+            if escape_bridge(remaining_people, time_taken, crossed):
+                return True
+            crossed.pop()
+    return False
 
-# Example usage
-graph = {
-    'A': {'B': 5, 'C': 3},
-    'B': {'D': 2},
-    'C': {'D': 7},
-    'D': {}
-}
+# Run the backtracking algorithm
+from itertools import combinations
 
-heuristic_func = lambda current, goal: 0  # Define the heuristic function
+people_to_cross = list(people.values())
+escape_possible = escape_bridge(people_to_cross, time_elapsed, crossed)
 
-came_from, cost_so_far = a_star_search(graph, 'A', 'D', heuristic_func)
-print("Came From:", came_from)
-print("Cost So Far:", cost_so_far)
-
-pass
-
-# Greedy Best-First Search
-def greedy_best_first_search(graph, heuristic_func):
-    # Implementation of Greedy Best-First Search
-    pass
-
-# Hill Climbing Algorithm
-def hill_climbing(graph, heuristic_func):
-    # Implementation of Hill Climbing Algorithm
-    pass
-
-# Genetic Algorithm
-def genetic_algorithm(graph, fitness_func):
-    # Implementation of Genetic Algorithm
-    pass
-
-if __name__ == '__main__':
-    # Define the graph and other problem-specific details
-    # ...
-
-    # Define the heuristic functions for the algorithms
-    # heuristic_func = define_heuristic_function()  # Define the heuristic function for the specific problem
-
-    # Implement the zombie escape strategy
-    zombie_escape_strategy(graph, heuristic_func)
-
-    # Implement A* Search Algorithm
-    a_star_result = a_star_search(graph, heuristic_func)
-    print("A* Search Result:", a_star_result)
-
-    # Implement Greedy Best-First Search
-    greedy_result = greedy_best_first_search(graph, heuristic_func)
-    print("Greedy Best-First Search Result:", greedy_result)
-
-    # Implement Hill Climbing Algorithm
-    hill_climbing_result = hill_climbing(graph, heuristic_func)
-    print("Hill Climbing Result:", hill_climbing_result)
-
-    # Implement Genetic Algorithm
-    genetic_result = genetic_algorithm(graph, fitness_func)
-    print("Genetic Algorithm Result:", genetic_result)
+# Output the results
+if escape_possible:
+    for idx, group in enumerate(crossed):
+        print(f"Group {idx + 1}: {group} crossed the bridge in {cross_bridge(group, time_elapsed)} minutes")
+else:
+    print("It is not possible to escape within the time limit.")
